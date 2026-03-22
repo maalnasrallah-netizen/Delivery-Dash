@@ -26,12 +26,14 @@ export class CarManager {
 		const dlt = delta * 0.01;
 		this.spawnDistAccum += dlt * playerSpeed;
 
-		// interval starts at 6000 road-units apart, floors at 2500 after ~90 seconds
-		const spawnDist = Math.max(2500, 6000 - (elapsedMs / 90000) * 3500);
+		// interval starts at 12000 road-units apart, floors at 5000 after ~90 seconds
+		const spawnDist = Math.max(5000, 12000 - (elapsedMs / 90000) * 7000);
 
 		if (this.spawnDistAccum >= spawnDist) {
 			this.spawnDistAccum = 0;
-			this.spawnOncoming(playerTrackPos);
+			if (this.cars.size < 3) {
+				this.spawnOncoming(playerTrackPos);
+			}
 		}
 
 		// move all cars along the track

@@ -10,4 +10,5 @@ module.exports = {
 	version,
 	buildDir,
 	distDir,
+	distOutput: distDir,
 };

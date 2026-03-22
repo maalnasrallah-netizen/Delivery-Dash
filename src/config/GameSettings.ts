@@ -17,7 +17,7 @@ class GameSettings {
 	public breaking = -this.maxSpeed / 20;
 	public offRoadDecel = -this.maxSpeed / 10;
 	public offRoadLimit = this.maxSpeed / 4;
-	public centrifugal = 0.2;
+	public centrifugal = 0.09;
 	public steerCompensation = 0.5;
 	public maxTurn = 1;
 	public turnResetMultiplier = 0.1;

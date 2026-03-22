@@ -145,15 +145,16 @@ export class GameScene extends BaseScene {
 
 		this.player.pitch = (playerSegment.p1.world.y - playerSegment.p2.world.y) * 0.002;
 
-		// world-space collision: same/adjacent segment + lateral overlap in road coords
-		// original behaviour: push rider back behind the car and halve speed
-		for (let i = 0; i <= 0; i++) {
-			const seg = this.road.segments[(playerSegment.index + i) % this.road.segments.length];
+		// world-space collision: check n=2..4 segments ahead — that's where cars are
+		// visually at the rider's feet (screen.y ≈ 734). playerSegment is n=8 ahead
+		// (due to player.z offset) and would fire way too early.
+		const baseIdx = this.road.findSegmentByZ(this.player.trackPosition).index;
+		for (let n = 3; n <= 6; n++) {
+			const seg = this.road.segments[(baseIdx + n) % this.road.segments.length];
 			for (const car of seg.cars) {
-				if (Math.abs(this.player.x - car.offset) < 0.2) {
-					this.player.collide('car');
-					this.player.trackPosition = Util.increase(car.trackPosition, -this.player.z, this.road.trackLength);
-					this.player.speed = this.player.speed / 2;
+				if (Math.abs(this.player.x - car.offset) < 0.45) {
+					this.triggerGameOver();
+					return;
 				}
 			}
 		}
@@ -184,8 +185,12 @@ export class GameScene extends BaseScene {
 	private triggerGameOver(): void {
 		this.player.collide('car');
 		this.scene.stop('RaceUiScene');
-		this.scene.pause();
-		this.scene.launch('GameOverScene', { score: Math.floor(this.score) });
+
+		this.camera.shake(500, 0.018, false, (_cam: any, progress: number) => {
+			if (progress === 1) {
+				this.scene.start('GameOverScene', { score: Math.floor(this.score) });
+			}
+		});
 	}
 
 	private setupTiltControls(): void {
@@ -219,14 +224,14 @@ export class GameScene extends BaseScene {
 		if (this.tiltActive) {
 			// tilt controls: gamma = left/right phone tilt, calibrated to holding position
 			const tiltAngle = this.tiltGamma - this.tiltCalibration;
-			const deadZone = 3;   // degrees of ignored dead zone
-			const maxTilt = 25;   // degrees = full turn rate
+			const deadZone = 1.5; // degrees of ignored dead zone
+			const maxTilt = 14;   // degrees = full turn rate
 			const absAngle = Math.abs(tiltAngle);
 
 			if (absAngle > deadZone) {
 				const strength = Phaser.Math.Clamp((absAngle - deadZone) / (maxTilt - deadZone), 0, 1);
 				const dir = Math.sign(tiltAngle);
-				this.player.turn += dlt * curveMultiplier * dir * strength;
+				this.player.turn += dlt * curveMultiplier * 1.6 * dir * strength;
 				this.cameraAngle -= dlt * dir * strength;
 			} else {
 				this.player.turn = Math.abs(this.player.turn) < 0.01 ? 0 : Util.interpolate(this.player.turn, 0, gameSettings.turnResetMultiplier);

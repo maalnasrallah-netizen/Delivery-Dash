@@ -57,7 +57,7 @@ export class Player {
 		const halfWidth = this.scene.scale.gameSize.width / 2;
 		const gameHeight = this.scene.scale.gameSize.height;
 		this.sprite = this.scene.add.image(halfWidth, gameHeight - 120, 'rider')
-			.setDisplaySize(330, 450)
+			.setDisplaySize(264, 360)
 			.setBlendMode(Phaser.BlendModes.NORMAL)
 			.setDepth(20);
 	}
