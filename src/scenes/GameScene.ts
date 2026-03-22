@@ -23,9 +23,14 @@ export class GameScene extends BaseScene {
 
 	public cursors: Input.Keyboard.CursorKeys;
 
+	public tiltGamma: number = 0;
+	public tiltActive: boolean = false;
+
 	private elapsedMs: number = 0;
 	private touchLeft: boolean = false;
 	private touchRight: boolean = false;
+	private tiltCalibration: number = 0;
+	private orientationHandler: (e: DeviceOrientationEvent) => void;
 
 	constructor(key: string, options: any) {
 		super('GameScene');
@@ -92,6 +97,8 @@ export class GameScene extends BaseScene {
 			g.generateTexture('lamp-post', tw, th);
 			g.destroy();
 		}
+
+		this.setupTiltControls();
 
 		this.road.resetRoad();
 		this.carManager.resetCars();
@@ -168,6 +175,11 @@ export class GameScene extends BaseScene {
 		this.camera.setAngle(this.cameraAngle);
 	}
 
+	public get tiltNormalized(): number {
+		if (!this.tiltActive) return 0;
+		return Phaser.Math.Clamp((this.tiltGamma - this.tiltCalibration) / 25, -1, 1);
+	}
+
 	// private ------------------------------------
 	private triggerGameOver(): void {
 		this.player.collide('car');
@@ -176,14 +188,55 @@ export class GameScene extends BaseScene {
 		this.scene.launch('GameOverScene', { score: Math.floor(this.score) });
 	}
 
+	private setupTiltControls(): void {
+		if (!window.DeviceOrientationEvent) return;
+
+		this.tiltActive = false;
+		this.tiltGamma = 0;
+
+		this.orientationHandler = (e: DeviceOrientationEvent) => {
+			if (e.gamma === null) return;
+			if (!this.tiltActive) {
+				this.tiltCalibration = e.gamma;
+				this.tiltActive = true;
+			}
+			this.tiltGamma = e.gamma;
+		};
+
+		window.addEventListener('deviceorientation', this.orientationHandler);
+
+		this.events.once('shutdown', () => {
+			if (this.orientationHandler) {
+				window.removeEventListener('deviceorientation', this.orientationHandler);
+			}
+		});
+	}
+
 	private handleInput(delta: number, playerSegment: TrackSegment): void {
 		const dlt = delta * 0.01;
+		const curveMultiplier = Math.abs(playerSegment.curve) > 0.1 ? 0.5 : 0.25;
 
-		if (this.cursors.left.isDown || this.touchLeft) {
-			this.player.turn -= dlt * (Math.abs(playerSegment.curve) > 0.1 ? 0.5 : 0.25);
+		if (this.tiltActive) {
+			// tilt controls: gamma = left/right phone tilt, calibrated to holding position
+			const tiltAngle = this.tiltGamma - this.tiltCalibration;
+			const deadZone = 3;   // degrees of ignored dead zone
+			const maxTilt = 25;   // degrees = full turn rate
+			const absAngle = Math.abs(tiltAngle);
+
+			if (absAngle > deadZone) {
+				const strength = Phaser.Math.Clamp((absAngle - deadZone) / (maxTilt - deadZone), 0, 1);
+				const dir = Math.sign(tiltAngle);
+				this.player.turn += dlt * curveMultiplier * dir * strength;
+				this.cameraAngle -= dlt * dir * strength;
+			} else {
+				this.player.turn = Math.abs(this.player.turn) < 0.01 ? 0 : Util.interpolate(this.player.turn, 0, gameSettings.turnResetMultiplier);
+				this.cameraAngle = Math.abs(this.cameraAngle) < 0.02 ? 0 : Util.interpolate(this.cameraAngle, 0, gameSettings.cameraAngleResetMultiplier);
+			}
+		} else if (this.cursors.left.isDown || this.touchLeft) {
+			this.player.turn -= dlt * curveMultiplier;
 			this.cameraAngle += dlt;
 		} else if (this.cursors.right.isDown || this.touchRight) {
-			this.player.turn += dlt * (Math.abs(playerSegment.curve) > 0.1 ? 0.5 : 0.25);
+			this.player.turn += dlt * curveMultiplier;
 			this.cameraAngle -= dlt;
 		} else {
 			this.player.turn = Math.abs(this.player.turn) < 0.01 ? 0 : Util.interpolate(this.player.turn, 0, gameSettings.turnResetMultiplier);
