@@ -60,9 +60,10 @@ export class Util {
 
 	public static overlapPlayer(player: Player, target: Prop|Car): boolean {
 		const playerCenter = player.scene.scale.gameSize.width / 2;
+		const collisionY = player.scene.scale.gameSize.height * 0.88;
 		const rect = new Phaser.Geom.Rectangle();
-		const overlaps = target.sprite.getBounds(rect).contains(playerCenter - player.collisionRadius, 150)
-					  || target.sprite.getBounds(rect).contains(playerCenter + player.collisionRadius, 150);
+		const overlaps = target.sprite.getBounds(rect).contains(playerCenter - player.collisionRadius, collisionY)
+					  || target.sprite.getBounds(rect).contains(playerCenter + player.collisionRadius, collisionY);
 
 		return overlaps;
 	}

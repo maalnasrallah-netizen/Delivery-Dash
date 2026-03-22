@@ -1,16 +1,10 @@
 import { GameScene } from '../scenes/GameScene';
-import { Phaser3D } from '../libs/Phaser3D';
 import { gameSettings } from '../config/GameSettings';
-import { Util } from './Util';
-
-const HALFPI = Math.PI / 2;
 
 export class Player {
 	public position: Phaser.Math.Vector3;
-	public sprite: Phaser.GameObjects.Rectangle;
+	public sprite: Phaser.GameObjects.Image;
 	public scene: GameScene;
-	public p3d: Phaser3D;
-	public model: any;
 	public smokeParticles: Phaser.GameObjects.Particles.ParticleEmitterManager;
 	public smokeEmitterLeft: Phaser.GameObjects.Particles.ParticleEmitter;
 	public smokeEmitterRight: Phaser.GameObjects.Particles.ParticleEmitter;
@@ -26,17 +20,15 @@ export class Player {
 	public trackPosition: number;
 	public accelerating: boolean = false;
 	public screeching: boolean = false;
-	public collisionRadius: number = 20;
-	private turnVector: Phaser.Math.Vector3;
+	public collisionRadius: number = 30;
 
-	constructor(scene: GameScene, x: number, y: number, z: number, modelKey: string) {
+	constructor(scene: GameScene, x: number, y: number, z: number) {
 		this.position = new Phaser.Math.Vector3(x, y, z);
 		this.scene = scene;
 		this.turn = 0;
 		this.pitch = 0;
 		this.speed = 0;
 		this.trackPosition = 0;
-		this.turnVector = new Phaser.Math.Vector3(0, 0, 0);
 
 		this.smokeParticles = this.scene.add.particles('particles').setDepth(21);
 		const particleSettings = {
@@ -62,19 +54,12 @@ export class Player {
 		this.smokeEmitterLeft = this.smokeParticles.createEmitter(particleSettings);
 		this.smokeEmitterRight = this.smokeParticles.createEmitter(particleSettings);
 
-		this.p3d = new Phaser3D(this.scene, { fov: 35, x: 0, y: 7, z: -20, antialias: false });
-		this.p3d.view.setDepth(20);
-		this.p3d.addGLTFModel(modelKey);
-
-		this.p3d.camera.lookAt(0, 5.1, 0);
-
-		this.p3d.add.hemisphereLight({ skyColor: 0xefefff, groundColor: 0x111111, intensity: 2 });
-		this.p3d.on('loadgltf', (gltf: any, model: any) => {
-			model.rotateY(HALFPI);
-			model.position.set(0, 0, 0);
-			model.scale.set(1, 1, 1);
-			this.model = model;
-		});
+		const halfWidth = this.scene.scale.gameSize.width / 2;
+		const gameHeight = this.scene.scale.gameSize.height;
+		this.sprite = this.scene.add.image(halfWidth, gameHeight - 120, 'rider')
+			.setDisplaySize(330, 450)
+			.setBlendMode(Phaser.BlendModes.NORMAL)
+			.setDepth(20);
 	}
 
 	public get x(): number { return this.position.x; }
@@ -100,25 +85,15 @@ export class Player {
 	public update(delta: number, dx: number) {
 		this.position.x += (this.turn * 0.08) * (this.speed / gameSettings.maxSpeed);
 
-		if (this.model) {
-			this.turnVector.y = HALFPI + -this.turn;
-			this.turnVector.x = Phaser.Math.Clamp(this.pitch, -0.3, 0.3);
-			this.model.rotation.setFromVector3(this.turnVector);
-			this.p3d.camera.rotation.z = Math.PI + Phaser.Math.DegToRad(this.scene.cameraAngle);
+		const halfWidth = this.scene.scale.gameSize.width / 2;
+		const gameHeight = this.scene.scale.gameSize.height;
+		this.sprite.setX(halfWidth + (-this.turn * 15));
+		this.sprite.setY(gameHeight - 120 - this.pitch * 10);
+		this.sprite.setRotation(-this.turn * 0.2);
 
-			if (this.pitch > 0) {
-				this.model.position.y = Util.interpolate(this.model.position.y, -this.pitch * 3, 0.33);
-			}
-
-			if (this.speed > 20) {
-				this.model.position.y = Util.interpolate(this.model.position.y + Phaser.Math.Between(-1, 1) * (this.isOnGravel ? 0.05 : 0.01), 0, 0.2);
-			}
-
-			this.updateParticles();
-
-			this.playEngineSound();
-			this.tireScreech(this.screeching);
-		}
+		this.updateParticles();
+		this.playEngineSound();
+		this.tireScreech(this.screeching);
 	}
 
 	public playEngineSound(): void {

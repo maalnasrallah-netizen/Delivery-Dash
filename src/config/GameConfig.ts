@@ -7,11 +7,11 @@ export const gameConfig: GameConfig = {
 		parent: 'game-container',
 		mode: Phaser.Scale.FIT,
 		autoCenter: Phaser.Scale.CENTER_BOTH,
-		width: 320,
-		height: 180,
+		width: 480,
+		height: 854,
 	},
 	render: {
-		pixelArt: true,
+		pixelArt: false,
 	},
 	plugins: {
 		global: [

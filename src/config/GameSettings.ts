@@ -1,13 +1,13 @@
 class GameSettings {
 	public roadWidth = 2200;
-	public roadWidthClamp = 3;
+	public roadWidthClamp = 1;
 	public segmentLength = 200;
 	public rumbleLength = 6;
 	public lanes = 3;
 	public fieldOfView = 110;
 	public cameraHeight = 2000;
 	public cameraDepth = 1 / Math.tan( (this.fieldOfView / 2) * Math.PI / 180 );
-	public projectYCompensation = 30;
+	public projectYCompensation = 420;
 	public drawDistance = 500;
 	public fogDensity = 5;
 	public maxSpeed = this.segmentLength * 9;

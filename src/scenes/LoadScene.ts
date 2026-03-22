@@ -23,6 +23,8 @@ export class LoadScene extends BaseScene {
 			progress.destroy();
 		});
 
+		this.load.image('kuwait-bg', './assets/kuwait-bg.png');
+		this.load.image('rider', './assets/rider.png');
 		this.load.image('clouds1', './assets/clouds.png');
 		this.load.image('clouds2', './assets/clouds2.png');
 		this.load.image('mountain', './assets/mountain.png');
@@ -42,7 +44,7 @@ export class LoadScene extends BaseScene {
 		this.load.spritesheet('car-yellow', './assets/car-yellow.png', { frameWidth: 64, frameHeight: 64 });
 		this.load.spritesheet('car-blue', './assets/car-blue.png', { frameWidth: 64, frameHeight: 64 });
 
-		this.load.binary('playercar', './assets/3d/car.glb');
+		// playercar 3d model removed - replaced by rider sprite
 
 		this.load.audio('engine', ['./assets/sound/engine-loop.wav']);
 		this.load.audio('tire-squeal', ['./assets/sound/tire-squeal.wav']);
@@ -59,7 +61,7 @@ export class LoadScene extends BaseScene {
 	}
 
 	public create(): void {
-		this.scene.start('GameScene', {});
+		this.scene.start('TitleScene', {});
 	}
 
 }

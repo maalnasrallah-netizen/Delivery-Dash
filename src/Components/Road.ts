@@ -95,8 +95,7 @@ export class Road {
 
 		this.trackLength = this.segments.length * gameSettings.segmentLength;
 
-		this.createRandomProps();
-		this.createTurnSigns();
+		this.createStreetLamps();
 	}
 
 	public addProp(scene: GameScene, segmentIndex: number, name: string, offset: number, height: number = 0, scale: number = 3000, flipX: boolean = false, collides: boolean = false): boolean {
@@ -175,6 +174,19 @@ export class Road {
 				// increment n so we don't put signs too close
 				n += 10;
 			}
+		}
+	}
+
+	public createStreetLamps(): void {
+		const spacing = 20;   // segments between lamps on each side
+		const offset   = 1.7; // just outside the rumble strip (road edge = ±1)
+		const scale    = 6000;
+
+		for (let n = 5; n < this.segments.length - spacing; n += spacing) {
+			// left side
+			this.addProp(this.scene, n, 'lamp-post', -offset, 0, scale, false, false);
+			// right side, staggered half a spacing so they alternate
+			this.addProp(this.scene, n + Math.floor(spacing / 2), 'lamp-post', offset, 0, scale, false, false);
 		}
 	}
 

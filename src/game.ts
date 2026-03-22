@@ -5,7 +5,9 @@ import './css/styles.css';
 import { BootScene } from './scenes/BootScene';
 import { gameConfig } from './config/GameConfig';
 import { LoadScene } from './scenes/LoadScene';
+import { TitleScene } from './scenes/TitleScene';
 import { GameScene } from './scenes/GameScene';
+import { GameOverScene } from './scenes/GameOverScene';
 import { RaceUiScene } from './scenes/RaceUiScene';
 
 // set up game class, and global stuff
@@ -37,6 +39,8 @@ window.onload = () => {
 
 	game.scene.add('BootScene', BootScene, true);
 	game.scene.add('LoadScene', LoadScene, false);
+	game.scene.add('TitleScene', TitleScene, false);
 	game.scene.add('GameScene', GameScene, false);
+	game.scene.add('GameOverScene', GameOverScene, false);
 	game.scene.add('RaceUiScene', RaceUiScene, false);
 };
